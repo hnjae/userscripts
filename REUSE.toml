@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: 2026 KIM Hyunjae
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+version = 1
+
+# Tool configuration and metadata files without SPDX-capable comments.
+[[annotations]]
+path = [
+  ".gitignore",
+  "AGENTS.md",
+  "biome.json",
+  "devenv.lock",
+  "package.json",
+  "pnpm-lock.yaml",
+  "scripts/*/package.json",
+  "scripts/*/tsconfig.json",
+  "tsconfig.base.json",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 KIM Hyunjae"
+SPDX-License-Identifier = "AGPL-3.0-or-later"
+
+# Gitignored build outputs and dependency trees. reuse would otherwise scan
+# them because of a Git bug with `--no-empty-directory` that drops nested
+# ignored directories from `git ls-files --ignored --others --directory`.
+[[annotations]]
+path = ["**/dist/**", "**/node_modules/**"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 KIM Hyunjae"
+SPDX-License-Identifier = "AGPL-3.0-or-later"
