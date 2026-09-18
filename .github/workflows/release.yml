@@ -29,6 +29,9 @@ jobs:
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           node-version: 24
+          # setup-node v5 caches the package manager by default and would look
+          # for pnpm here; pnpm is installed globally in the next step instead.
+          package-manager-cache: false
       - name: Install pnpm
         run: |
           version="$(node -p "require('./package.json').packageManager.split('@')[1]")"
