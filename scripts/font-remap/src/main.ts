@@ -80,9 +80,10 @@ const TARGET_MONO_FAMILIES = [
   "Courier New",
   // Linux.
   "DejaVu Sans Mono",
-  "Ubuntu Mono",
   "Liberation Mono",
   "Noto Mono",
+  "Roboto Mono",
+  "Ubuntu Mono",
   // Korean and CJK coding fonts.
   "D2Coding",
   "NanumGothicCoding",
