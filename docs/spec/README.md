@@ -5,4 +5,4 @@
 
 User-facing specifications, one file per subject. Each file describes intended end-state behavior, not implementation.
 
-- [font-remap](font-remap.md) — replace a fixed set of Korean, Latin, and system UI fonts with Pretendard on every website.
+- [font-remap](font-remap.md) — replace a fixed set of sans families (Korean, Latin, system UI) with Pretendard and monospace families with Sarasa Gothic K on every website.

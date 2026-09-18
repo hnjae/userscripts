@@ -16,7 +16,7 @@ export default defineConfig({
         name: "font-remap",
         namespace: "https://github.com/hnjae/userscripts",
         description:
-          "Replace Korean, Latin, and system UI fonts with locally installed Pretendard.",
+          "Replace sans fonts with locally installed Pretendard and monospace fonts with Sarasa Gothic K.",
         license: "AGPL-3.0-or-later",
         match: ["*://*/*"],
         "run-at": "document-start",
