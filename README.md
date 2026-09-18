@@ -15,17 +15,18 @@ A personal monorepo of browser userscripts written for [Violentmonkey](https://v
 
 ## Scripts
 
-| Script                            | Description                                                             |                                                                                                Install |
-| --------------------------------- | ----------------------------------------------------------------------- | -----------------------------------------------------------------------------------------------------: |
-| [font-remap](scripts/font-remap/) | Replace Korean system and web fonts with a locally installed Pretendard | [font-remap.user.js](https://github.com/hnjae/userscripts/releases/latest/download/font-remap.user.js) |
+| Script                            | Description                                                                    |                                                                                                Install |
+| --------------------------------- | ------------------------------------------------------------------------------ | -----------------------------------------------------------------------------------------------------: |
+| [font-remap](scripts/font-remap/) | Replace Korean, Latin, and system UI fonts with a locally installed Pretendard | [font-remap.user.js](https://github.com/hnjae/userscripts/releases/latest/download/font-remap.user.js) |
 
 ### font-remap
 
-Remaps a fixed set of Korean font family names — Noto Sans KR (본고딕), Nanum Gothic (나눔고딕), Apple SD Gothic Neo, and Malgun Gothic (맑은 고딕) — to Pretendard through document-level `@font-face` rules.
+Remaps a fixed set of Korean, Latin, and system UI font family names — Noto Sans KR, Nanum Gothic, Malgun Gothic, Dotum, Inter, Roboto, Segoe UI, Helvetica, Arial, and more — to Pretendard through document-level `@font-face` rules.
 
 - Font stacks are never rewritten, so icon fonts and site fallback chains stay intact.
 - Replacement reaches shadow DOM and iframes, applies before first paint, and keeps winning against webfonts the site registers later.
 - Every weight renders with true strokes from a Pretendard Variable install; italic text gets Pretendard glyphs with a synthesized slant.
+- Glyphs Pretendard does not cover (e.g. Cyrillic, CJK ideographs) fall through the site's remaining font stack.
 
 The full behavior contract is specified in [`docs/spec/font-remap.md`](docs/spec/font-remap.md).
 

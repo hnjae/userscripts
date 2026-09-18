@@ -16,7 +16,7 @@ export default defineConfig({
         name: "font-remap",
         namespace: "https://github.com/hnjae/userscripts",
         description:
-          "Replace Korean system/web fonts with locally installed Pretendard.",
+          "Replace Korean, Latin, and system UI fonts with locally installed Pretendard.",
         license: "AGPL-3.0-or-later",
         match: ["*://*/*"],
         "run-at": "document-start",

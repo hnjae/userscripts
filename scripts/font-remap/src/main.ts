@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 /**
- * Remap a fixed set of Korean font family names to locally installed
- * Pretendard.
+ * Remap a fixed set of Korean, Latin, and system UI font family names to
+ * locally installed Pretendard.
  *
  * Each target name gets one @font-face rule per weight plus a broad italic
  * rule, all whose src resolve only to a local Pretendard installation.
@@ -25,6 +25,7 @@ const REPLACEMENT = "Pretendard";
 // Font family name matching ignores ASCII case, so entries must be genuinely
 // distinct names rather than case variants.
 const TARGET_FAMILIES = [
+  // Korean.
   "Noto Sans KR",
   "NotoSansKR",
   "Noto Sans Korean",
@@ -32,6 +33,7 @@ const TARGET_FAMILIES = [
   "Nanum Gothic",
   "NanumGothic",
   "나눔고딕",
+  "NanumGothicWebFont",
   "Apple SD Gothic Neo",
   "AppleSDGothicNeo",
   "애플 SD 산돌고딕 Neo",
@@ -39,6 +41,22 @@ const TARGET_FAMILIES = [
   "Malgun Gothic",
   "MalgunGothic",
   "맑은 고딕",
+  "Dotum",
+  "돋움",
+  // Latin and system UI.
+  "Noto Sans",
+  "Inter",
+  "San Francisco",
+  "SF Pro",
+  "SF Pro Text",
+  "SF Pro Display",
+  "Helvetica",
+  "Helvetica Neue",
+  "Arial",
+  "Segoe UI",
+  "Segoe UI Variable",
+  "Roboto",
+  "Liberation Sans",
 ] as const;
 
 // local() matches full font names, not family names, and the static edition
