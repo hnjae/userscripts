@@ -8,6 +8,7 @@ version = 1
 path = [
   ".gitignore",
   "AGENTS.md",
+  "README.md",
   "biome.json",
   "devenv.lock",
   "package.json",
