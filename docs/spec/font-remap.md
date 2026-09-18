@@ -3,7 +3,7 @@
 
 # font-remap
 
-Replace a fixed set of sans font families — Korean, Latin, and system UI — with Pretendard, and a fixed set of monospace families with Sarasa Mono K, on every website.
+Replace a fixed set of sans font families — Korean, Latin, and system UI — with Pretendard, and a fixed set of monospace families with Sarasa Gothic K, on every website.
 
 Neither replacement font is distributed with the script. Both must be installed on the machine running the browser; with the Pretendard Variable edition installed every sans weight renders with true strokes, otherwise the browser synthesizes them from the installed static cut.
 
@@ -27,7 +27,7 @@ Text whose font stack names any of these families renders in Pretendard:
 
 ## Replaced monospace family names
 
-Text whose font stack names any of these families renders in Sarasa Mono K:
+Text whose font stack names any of these families renders in Sarasa Gothic K:
 
 - Editor and web fonts: `GitLab Mono`, `Fira Code`, `Fira Mono`, `JetBrains Mono`, `Cascadia Mono`, `Monospace Neon`
 - Apple: `SF Mono`, `SFMono Regular`, `Menlo`, `Monaco`
@@ -42,10 +42,10 @@ Family name matching follows CSS semantics: names match exactly and ASCII case-i
 ## Behavior
 
 - Replacement applies to every website, in the top document and in iframes.
-- A target family is replaced whether the site uses it as a locally installed font or declares it as a webfont. All of its weights render in the replacement font; sans italics render with Pretendard glyphs and a synthesized slant, and monospace italics use the italic styles Sarasa Mono K publishes.
+- A target family is replaced whether the site uses it as a locally installed font or declares it as a webfont. All of its weights render in the replacement font; sans italics render with Pretendard glyphs and a synthesized slant, and monospace italics use the matching italic styles Sarasa Gothic K publishes.
 - Replacement is in effect before the page renders text, including when the site registers its webfonts after the document has started loading.
 - Text inside shadow DOM is replaced as well.
 - Font stacks that name none of the replaced families are untouched; icon fonts and other site typography are unaffected.
-- Monospace replacement changes character advance widths, so page content laid out against the replaced fonts' metrics, such as ASCII diagrams or web terminals, may reflow.
+- The monospace replacement, Sarasa Gothic K, is proportional rather than monospaced, so page content laid out against the replaced fonts' shared character grid, such as ASCII diagrams or web terminals, loses column alignment and may reflow.
 - Characters Pretendard does not cover, such as CJK ideographs, Cyrillic, or Greek, fall through the site's remaining font stack.
 - Without a replacement font installed, its affected sites render exactly as they would without the script.

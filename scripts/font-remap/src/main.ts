@@ -4,7 +4,7 @@
 /**
  * Remap fixed sets of sans and monospace font family names to locally
  * installed replacements: Korean, Latin, and system UI sans families to
- * Pretendard, and monospace families to Sarasa Mono K.
+ * Pretendard, and monospace families to Sarasa Gothic K.
  *
  * Each target name gets one @font-face rule per available style, all whose
  * src resolve only to a local installation of the replacement font.
@@ -134,17 +134,24 @@ const PRETENDARD_FACES: FaceSpec[] = [
   },
 ];
 
-// Sarasa Mono K ships no variable edition, so each face resolves to the
+// Sarasa Gothic K ships no variable edition, so each face resolves to the
 // static full name of a weight it publishes; weights it does not publish
 // fall to the nearest declared face. Italics exist and get their own faces.
-const SARASA_MONO_K_FACES: FaceSpec[] = [
-  { weight: "200", style: "normal", locals: ["Sarasa Mono K XLight"] },
-  { weight: "300", style: "normal", locals: ["Sarasa Mono K Light"] },
-  { weight: "400", style: "normal", locals: ["Sarasa Mono K"] },
-  { weight: "600", style: "normal", locals: ["Sarasa Mono K SemiBold"] },
-  { weight: "700", style: "normal", locals: ["Sarasa Mono K Bold"] },
-  { weight: "100 500", style: "italic", locals: ["Sarasa Mono K Italic"] },
-  { weight: "600 900", style: "italic", locals: ["Sarasa Mono K Bold Italic"] },
+const SARASA_GOTHIC_K_FACES: FaceSpec[] = [
+  { weight: "200", style: "normal", locals: ["Sarasa Gothic K XLight"] },
+  { weight: "300", style: "normal", locals: ["Sarasa Gothic K Light"] },
+  { weight: "400", style: "normal", locals: ["Sarasa Gothic K"] },
+  { weight: "600", style: "normal", locals: ["Sarasa Gothic K SemiBold"] },
+  { weight: "700", style: "normal", locals: ["Sarasa Gothic K Bold"] },
+  { weight: "200", style: "italic", locals: ["Sarasa Gothic K XLight Italic"] },
+  { weight: "300", style: "italic", locals: ["Sarasa Gothic K Light Italic"] },
+  { weight: "400", style: "italic", locals: ["Sarasa Gothic K Italic"] },
+  {
+    weight: "600",
+    style: "italic",
+    locals: ["Sarasa Gothic K SemiBold Italic"],
+  },
+  { weight: "700", style: "italic", locals: ["Sarasa Gothic K Bold Italic"] },
 ];
 
 function replacementCss(family: string, faces: readonly FaceSpec[]): string {
@@ -190,7 +197,7 @@ style.textContent = [
     replacementCss(family, PRETENDARD_FACES),
   ),
   ...TARGET_MONO_FAMILIES.map((family) =>
-    replacementCss(family, SARASA_MONO_K_FACES),
+    replacementCss(family, SARASA_GOTHIC_K_FACES),
   ),
 ].join("\n");
 keepLast(style);

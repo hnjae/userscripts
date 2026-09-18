@@ -15,24 +15,24 @@ A personal monorepo of browser userscripts written for [Violentmonkey](https://v
 
 ## Scripts
 
-| Script                            | Description                                                                                 |                                                                                                Install |
-| --------------------------------- | ------------------------------------------------------------------------------------------- | -----------------------------------------------------------------------------------------------------: |
-| [font-remap](scripts/font-remap/) | Replace sans fonts with locally installed Pretendard and monospace fonts with Sarasa Mono K | [font-remap.user.js](https://github.com/hnjae/userscripts/releases/latest/download/font-remap.user.js) |
+| Script                            | Description                                                                                   |                                                                                                Install |
+| --------------------------------- | --------------------------------------------------------------------------------------------- | -----------------------------------------------------------------------------------------------------: |
+| [font-remap](scripts/font-remap/) | Replace sans fonts with locally installed Pretendard and monospace fonts with Sarasa Gothic K | [font-remap.user.js](https://github.com/hnjae/userscripts/releases/latest/download/font-remap.user.js) |
 
 ### font-remap
 
-Remaps a fixed set of Korean, Latin, and system UI sans families — Noto Sans KR, Nanum Gothic, Malgun Gothic, Dotum, Inter, Roboto, Segoe UI, Helvetica, Arial, and more — to Pretendard through document-level `@font-face` rules. Monospace families — Fira Code, JetBrains Mono, Cascadia Mono, Consolas, SF Mono, D2Coding, NanumGothicCoding, and more — are remapped the same way to Sarasa Mono K.
+Remaps a fixed set of Korean, Latin, and system UI sans families — Noto Sans KR, Nanum Gothic, Malgun Gothic, Dotum, Inter, Roboto, Segoe UI, Helvetica, Arial, and more — to Pretendard through document-level `@font-face` rules. Monospace families — Fira Code, JetBrains Mono, Cascadia Mono, Consolas, SF Mono, D2Coding, NanumGothicCoding, and more — are remapped the same way to Sarasa Gothic K.
 
 - Font stacks are never rewritten, so icon fonts and site fallback chains stay intact.
 - Replacement reaches shadow DOM and iframes, applies before first paint, and keeps winning against webfonts the site registers later.
-- Every sans weight renders with true strokes from a Pretendard Variable install; italic text gets Pretendard glyphs with a synthesized slant. Code fonts render in Sarasa Mono K, keeping CJK glyphs at true monospace widths.
-- Sarasa Mono K's half-width advance differs from the replaced code fonts, so metric-sensitive content (ASCII diagrams, web terminals) may reflow.
+- Every sans weight renders with true strokes from a Pretendard Variable install; italic text gets Pretendard glyphs with a synthesized slant. Code fonts render in Sarasa Gothic K, and each published weight and italic style uses its true static face.
+- Sarasa Gothic K is proportional rather than monospaced, so metric-sensitive content (ASCII diagrams, indented columns, web terminals) loses column alignment and may reflow.
 - Glyphs Pretendard does not cover (e.g. Cyrillic, CJK ideographs) fall through the site's remaining font stack.
 
 The full behavior contract is specified in [`docs/spec/font-remap.md`](docs/spec/font-remap.md).
 
 > [!IMPORTANT]
-> The script ships no font data. Install [Pretendard](https://github.com/orioncactus/pretendard) and [Sarasa Mono K](https://github.com/be5invis/Sarasa-Gothic/releases) on your system first — without them, affected sites render exactly as they would without the script.
+> The script ships no font data. Install [Pretendard](https://github.com/orioncactus/pretendard) and [Sarasa Gothic K](https://github.com/be5invis/Sarasa-Gothic/releases) on your system first — without them, affected sites render exactly as they would without the script.
 
 ## Installation
 
