@@ -17,6 +17,11 @@
  * head: webfont faces the site registers later in the document would
  * otherwise win the tie and leak through on the characters their subsets
  * cover.
+ *
+ * The remap skips loopback names (localhost and *.localhost) and direct IP
+ * literals, where pages are typically local work the user wants to see
+ * unmodified, and codingfont.com, whose purpose is showing fonts as they
+ * ship.
  */
 
 const STYLE_ELEMENT_ID = "font-remap";
@@ -191,14 +196,38 @@ function keepLast(style: HTMLStyleElement): void {
   moveToEnd();
 }
 
-const style = document.createElement("style");
-style.id = STYLE_ELEMENT_ID;
-style.textContent = [
-  ...TARGET_SANS_FAMILIES.map((family) =>
-    replacementCss(family, PRETENDARD_FACES),
-  ),
-  ...TARGET_MONO_FAMILIES.map((family) =>
-    replacementCss(family, SARASA_GOTHIC_K_FACES),
-  ),
-].join("\n");
-keepLast(style);
+/**
+ * Whether the remap must not apply to this host: loopback names, IP
+ * literals, and the codingfont.com comparison site.
+ */
+function isExcludedHost(hostname: string): boolean {
+  // Hostnames are case-insensitive and may carry a trailing root dot.
+  const host = hostname.toLowerCase().replace(/\.$/, "");
+  return (
+    host === "localhost" ||
+    host.endsWith(".localhost") ||
+    // IPv6 arrives bracketed in location.hostname, e.g. "[::1]".
+    (host.startsWith("[") && host.endsWith("]")) ||
+    /^(\d{1,3}\.){3}\d{1,3}$/.test(host) ||
+    host === "codingfont.com" ||
+    host.endsWith(".codingfont.com")
+  );
+}
+
+function main(): void {
+  if (isExcludedHost(location.hostname)) return;
+
+  const style = document.createElement("style");
+  style.id = STYLE_ELEMENT_ID;
+  style.textContent = [
+    ...TARGET_SANS_FAMILIES.map((family) =>
+      replacementCss(family, PRETENDARD_FACES),
+    ),
+    ...TARGET_MONO_FAMILIES.map((family) =>
+      replacementCss(family, SARASA_GOTHIC_K_FACES),
+    ),
+  ].join("\n");
+  keepLast(style);
+}
+
+main();
