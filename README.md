@@ -25,7 +25,7 @@ Remaps a fixed set of Korean, Latin, and system UI sans families — Noto Sans K
 
 - Font stacks are never rewritten, so icon fonts and site fallback chains stay intact.
 - Replacement reaches shadow DOM and iframes, applies before first paint, and keeps winning against webfonts the site registers later.
-- Every sans weight renders with true strokes from a Pretendard Variable install; italic text gets Pretendard glyphs with a synthesized slant. Code fonts render in Sarasa Mono K, keeping CJK glyphs at true monospace widths.
+- Every sans weight renders with true strokes from a Pretendard Variable install; italic text gets Pretendard glyphs with a synthesized slant. Code fonts render in Sarasa Mono K, scaled up via CSS `size-adjust` to match the apparent size of typical code fonts, keeping CJK glyphs at true monospace widths.
 - Sarasa Mono K's half-width advance differs from the replaced code fonts, so metric-sensitive content (ASCII diagrams, web terminals) may reflow.
 - Glyphs Pretendard does not cover (e.g. Cyrillic, CJK ideographs) fall through the site's remaining font stack.
 

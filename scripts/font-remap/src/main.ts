@@ -147,14 +147,24 @@ const SARASA_MONO_K_FACES: FaceSpec[] = [
   { weight: "600 900", style: "italic", locals: ["Sarasa Mono K Bold Italic"] },
 ];
 
-function replacementCss(family: string, faces: readonly FaceSpec[]): string {
+// Sarasa Mono K's glyphs run small next to the monospace fonts it replaces,
+// so its faces scale the em size up through the size-adjust descriptor.
+const MONO_SIZE_ADJUST = "110%";
+
+function replacementCss(
+  family: string,
+  faces: readonly FaceSpec[],
+  sizeAdjust?: string,
+): string {
   return faces
     .map(
       (face) => `@font-face {
 	font-family: "${family}";
 	src: ${face.locals.map((name) => `local("${name}")`).join(", ")};
 	font-weight: ${face.weight};
-	font-style: ${face.style};
+	font-style: ${face.style};${
+    sizeAdjust ? `\n\tsize-adjust: ${sizeAdjust};` : ""
+  }
 }`,
     )
     .join("\n");
@@ -190,7 +200,7 @@ style.textContent = [
     replacementCss(family, PRETENDARD_FACES),
   ),
   ...TARGET_MONO_FAMILIES.map((family) =>
-    replacementCss(family, SARASA_MONO_K_FACES),
+    replacementCss(family, SARASA_MONO_K_FACES, MONO_SIZE_ADJUST),
   ),
 ].join("\n");
 keepLast(style);
