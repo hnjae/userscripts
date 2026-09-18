@@ -47,5 +47,6 @@ Family name matching follows CSS semantics: names match exactly and ASCII case-i
 - Text inside shadow DOM is replaced as well.
 - Font stacks that name none of the replaced families are untouched; icon fonts and other site typography are unaffected.
 - Monospace replacement changes character advance widths, so page content laid out against the replaced fonts' metrics, such as ASCII diagrams or web terminals, may reflow.
+- Sarasa Mono K renders scaled up through the CSS `size-adjust` descriptor so its glyphs match the apparent size of the monospace fonts it replaces; page-declared font sizes are untouched.
 - Characters Pretendard does not cover, such as CJK ideographs, Cyrillic, or Greek, fall through the site's remaining font stack.
 - Without a replacement font installed, its affected sites render exactly as they would without the script.
