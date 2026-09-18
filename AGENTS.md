@@ -4,7 +4,7 @@ Personal monorepo of Violentmonkey userscripts (browser user scripts). License: 
 
 ## Layout
 
-- One pnpm workspace package per userscript in `scripts/<name>/`: `package.json` + `vite.config.ts` (vite-plugin-monkey) + `src/main.ts`. No userscripts are committed yet.
+- One pnpm workspace package per userscript in `scripts/<name>/`: `package.json` + `vite.config.ts` (vite-plugin-monkey) + `src/main.ts`.
 - Shared code goes in `packages/lib/` when first needed (already covered by the workspace glob).
 - Toolchain lives in `devenv.nix` (devenv.sh): node, pnpm, biome, treefmt, prek, cocogitto, reuse. These tools are only on PATH inside the devenv environment.
 
@@ -26,7 +26,15 @@ Entering `devenv shell` runs `pnpm install` and the git hooks automatically. dev
 1. Create `scripts/<name>/` with `package.json` (`name: @userscripts/<name>`; its `version` IS the userscript `@version`), `vite.config.ts`, `src/main.ts`.
 2. `devenv shell -- pnpm --filter @userscripts/<name> add -D vite vite-plugin-monkey typescript`
 3. Set `build: { fileName: '<name>.user.js' }` in the monkey config — it must match the release asset name.
-4. Auto-update contract: `@updateURL`/`@downloadURL` point to `https://github.com/hnjae/userscripts/releases/latest/download/<name>.user.js`; bump the package `version` each release and keep the asset filename identical.
+4. Auto-update contract: `@updateURL`/`@downloadURL` point to `https://github.com/hnjae/userscripts/releases/latest/download/<name>.user.js`; bump the package `version` to publish (see Releasing) and keep the asset filename identical.
+
+## Releasing
+
+Releases are automated by `.github/workflows/release.yml` on every push to `main` (manual trigger: `gh workflow run release`).
+
+- A userscript is released exactly when its `scripts/<name>/package.json` `version` has no matching `<name>-v<semver>` tag; pushes without a version bump are no-ops.
+- Each run publishes one snapshot release containing **every** userscript's `dist/<name>.user.js` and tags every released version. This is required by the install/auto-update contract: `releases/latest/download/<name>.user.js` resolves inside the single latest release only, so a release missing any script's asset would 404 for that script.
+- Release notes list each script's version and the commits touching `scripts/<name>/` since its previous tag.
 
 ## Gotchas
 

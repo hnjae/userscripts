@@ -1,0 +1,167 @@
+# SPDX-FileCopyrightText: 2026 KIM Hyunjae
+# SPDX-License-Identifier: AGPL-3.0-or-later
+name: release
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/**"
+      - ".github/workflows/release.yml"
+  workflow_dispatch:
+# Each job grants its own least-privilege scope; the workflow default is deny-all.
+permissions: {}
+concurrency:
+  group: release
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      # Push version tags and create releases with the built userscript assets.
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Full history and tags for version-tag comparisons and release notes.
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: 24
+      - name: Install pnpm
+        run: |
+          version="$(node -p "require('./package.json').packageManager.split('@')[1]")"
+          npm install -g "pnpm@${version}"
+      - name: Compute release plan
+        id: plan
+        run: |
+          cat > "$RUNNER_TEMP/plan.mjs" <<'EOF'
+          import { execFileSync } from "node:child_process";
+          import { appendFileSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+
+          const git = (...args) =>
+            execFileSync("git", args, { encoding: "utf8" }).trimEnd();
+
+          const compareSemver = (a, b) => {
+            for (let i = 0; i < 3; i += 1) {
+              if (a[i] !== b[i]) return a[i] - b[i];
+            }
+            return 0;
+          };
+
+          const names = readdirSync("scripts", { withFileTypes: true })
+            .filter((entry) => entry.isDirectory())
+            .map((entry) => entry.name)
+            .toSorted();
+
+          const plan = [];
+          for (const name of names) {
+            const { version } = JSON.parse(
+              readFileSync(`scripts/${name}/package.json`, "utf8"),
+            );
+            if (!/^\d+\.\d+\.\d+$/.test(version)) {
+              throw new Error(`${name}: unsupported version format: ${version}`);
+            }
+            const tag = `${name}-v${version}`;
+            const needsRelease = git("tag", "--list", tag) !== tag;
+            const previous = git("tag", "--list", `${name}-v*`)
+              .split("\n")
+              .filter((t) => t !== "" && t !== tag)
+              .map((t) => ({
+                tag: t,
+                semver: t.slice(`${name}-v`.length).split(".").map(Number),
+              }))
+              .sort((a, b) => compareSemver(b.semver, a.semver))[0];
+
+            let changes;
+            if (!needsRelease) {
+              changes = null;
+            } else if (previous) {
+              changes = git(
+                "log",
+                `${previous.tag}..HEAD`,
+                "--format=- %s",
+                "--",
+                `scripts/${name}`,
+              );
+              if (changes === "") {
+                changes = "No commits touching this script since the previous release.";
+              }
+            } else {
+              changes = "Initial release.";
+            }
+
+            plan.push({ name, tag, needsRelease, changes });
+          }
+
+          const releasable = plan.filter((script) => script.needsRelease);
+          const notes = plan
+            .map((script) => {
+              const header =
+                `## ${script.name} ${script.tag.slice(script.name.length + 2)}` +
+                `${script.needsRelease ? "" : " (unchanged)"}`;
+              return script.needsRelease ? `${header}\n${script.changes}` : header;
+            })
+            .join("\n\n");
+
+          const result = {
+            hasReleasable: releasable.length > 0,
+            releaseTag: releasable[0]?.tag ?? null,
+            title: releasable.map((s) => s.tag).join(" + ") || null,
+            notes,
+            scripts: plan.map(({ name, tag, needsRelease }) => ({ name, tag, needsRelease })),
+          };
+
+          writeFileSync(`${process.env.RUNNER_TEMP}/plan.json`, JSON.stringify(result, null, 2));
+          writeFileSync(`${process.env.RUNNER_TEMP}/notes.md`, `${notes}\n`);
+          if (process.env.GITHUB_OUTPUT) {
+            appendFileSync(process.env.GITHUB_OUTPUT, `has_releasable=${result.hasReleasable}\n`);
+          }
+          EOF
+          node "$RUNNER_TEMP/plan.mjs"
+      - name: Install dependencies
+        if: steps.plan.outputs.has_releasable == 'true'
+        run: pnpm install --frozen-lockfile
+      - name: Build userscripts
+        if: steps.plan.outputs.has_releasable == 'true'
+        run: pnpm -r build
+      - name: Verify build outputs
+        if: steps.plan.outputs.has_releasable == 'true'
+        env:
+          PLAN_FILE: ${{ runner.temp }}/plan.json
+        run: |
+          mapfile -t names < <(jq -r '.scripts[].name' "$PLAN_FILE")
+          for name in "${names[@]}"; do
+            asset="scripts/${name}/dist/${name}.user.js"
+            if [ ! -s "$asset" ]; then
+              echo "::error::Missing build output: ${asset}"
+              exit 1
+            fi
+          done
+      - name: Create snapshot release
+        if: steps.plan.outputs.has_releasable == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PLAN_FILE: ${{ runner.temp }}/plan.json
+          NOTES_FILE: ${{ runner.temp }}/notes.md
+        run: |
+          release_tag="$(jq -r '.releaseTag' "$PLAN_FILE")"
+          title="$(jq -r '.title' "$PLAN_FILE")"
+          mapfile -t assets < <(jq -r '.scripts[].name' "$PLAN_FILE" | sed 's|.*|scripts/&/dist/&.user.js|')
+          gh release create "$release_tag" "${assets[@]}" \
+            --target "$GITHUB_SHA" \
+            --title "$title" \
+            --notes-file "$NOTES_FILE"
+      - name: Tag remaining released versions
+        if: steps.plan.outputs.has_releasable == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PLAN_FILE: ${{ runner.temp }}/plan.json
+        run: |
+          release_tag="$(jq -r '.releaseTag' "$PLAN_FILE")"
+          while IFS= read -r tag; do
+            gh api -X POST repos/{owner}/{repo}/git/refs \
+              -f "ref=refs/tags/${tag}" -f "sha=${GITHUB_SHA}"
+          done < <(jq -r --arg rt "$release_tag" \
+            '.scripts[] | select(.needsRelease and .tag != $rt) | .tag' "$PLAN_FILE")
