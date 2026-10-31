@@ -8,7 +8,7 @@ let
     overlays = [ ];
   };
 in
-pkgs.mkShell {
+pkgs.mkShellNoCc {
   packages = with pkgs; [
     # JavaScript toolchain. Bun installs dependencies and runs workspace
     # scripts; Node stays for Vite, which only supports the Node runtime.
