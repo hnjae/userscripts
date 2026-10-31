@@ -17,22 +17,19 @@ A personal monorepo of browser userscripts written for [Violentmonkey](https://v
 
 | Script | Description | Install |
 | --------------------------------- | ------------------------------------------------------------------------------------------- | -----------------------------------------------------------------------------------------------------: |
-| [font-remap](scripts/font-remap/) | Replace sans fonts with locally installed Pretendard and monospace fonts with Sarasa Mono K | [font-remap.user.js](https://github.com/hnjae/userscripts/releases/latest/download/font-remap.user.js) |
+| [font-remap](scripts/font-remap/) | Ignore site fonts and use the operating system's default UI, sans, serif, and monospace fonts | [font-remap.user.js](https://github.com/hnjae/userscripts/releases/latest/download/font-remap.user.js) |
 
 ### font-remap
 
-Remaps a fixed set of Korean, Latin, and system UI sans families — Noto Sans KR, Nanum Gothic, Malgun Gothic, Dotum, Inter, Roboto, Segoe UI, Helvetica, Arial, and more — to Pretendard through document-level `@font-face` rules. Monospace families — Fira Code, JetBrains Mono, Cascadia Mono, Consolas, SF Mono, D2Coding, NanumGothicCoding, and more — are remapped the same way to Sarasa Mono K.
+Ignores the sans, serif, and monospace families a site asks for — Noto Sans KR, Nanum Gothic, Malgun Gothic, Roboto, Segoe UI, Inter, Arial, Dotum, Times New Roman, Georgia, Batang, Nanum Myeongjo, Hack, Roboto Mono, Consolas, SF Mono, Menlo, and more — and renders that text in the operating system's default fonts: `system-ui, ui-sans-serif, sans-serif` for system UI families, `ui-sans-serif, sans-serif` for older sans faces such as Arial and Dotum, `ui-serif, serif` for serif faces, and `ui-monospace, monospace` for monospace text.
 
-- Font stacks are never rewritten, so icon fonts and site fallback chains stay intact.
-- Replacement reaches shadow DOM and iframes, applies before first paint, and keeps winning against webfonts the site registers later.
-- Every sans weight renders with true strokes from a Pretendard Variable install; italic text gets Pretendard glyphs with a synthesized slant. Code fonts render in Sarasa Mono K, scaled up via CSS `size-adjust` to match the apparent size of typical code fonts, keeping CJK glyphs at true monospace widths.
-- Sarasa Mono K's half-width advance differs from the replaced code fonts, so metric-sensitive content (ASCII diagrams, web terminals) may reflow.
-- Glyphs Pretendard does not cover (e.g. Cyrillic, CJK ideographs) fall through the site's remaining font stack.
+- Each reader sees their own system fonts; the script ships no font data and needs nothing installed.
+- Rewriting wins over the site's stylesheets, including cross-origin ones, and over inline styles it sets later.
+- It reaches iframes and open shadow roots, applies before first paint, and keeps working for content added after load.
+- Families outside the four lists — icon fonts, cursive text, site-specific fallbacks — keep their place in the stack.
+- Monospace replacement changes character advance widths, so metric-sensitive content (ASCII diagrams, web terminals) may reflow.
 
 The full behavior contract is specified in [`docs/spec/font-remap.md`](docs/spec/font-remap.md).
-
-> [!IMPORTANT]
-> The script ships no font data. Install [Pretendard](https://github.com/orioncactus/pretendard) and [Sarasa Mono K](https://github.com/be5invis/Sarasa-Gothic/releases) on your system first — without them, affected sites render exactly as they would without the script.
 
 ## Installation
 

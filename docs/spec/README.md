@@ -5,4 +5,4 @@
 
 User-facing specifications, one file per subject. Each file describes intended end-state behavior, not implementation.
 
-- [font-remap](font-remap.md) — replace a fixed set of sans families (Korean, Latin, system UI) with Pretendard and monospace families with Sarasa Mono K on every website.
+- [font-remap](font-remap.md) — ignore site-specified sans, serif, and monospace families and render that text in the operating system's default fonts on every website.

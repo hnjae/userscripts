@@ -2,28 +2,52 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 /**
- * Remap fixed sets of sans and monospace font family names to locally
- * installed replacements: Korean, Latin, and system UI sans families to
- * Pretendard, and monospace families to Sarasa Mono K.
+ * Ignore the font families a site specifies and render text in the operating
+ * system's default fonts: the system UI font for system UI families, the
+ * system sans font for families the user mapped there, the system serif font
+ * for serif families, and the system monospace font for monospace families.
  *
- * Each target name gets one @font-face rule per available style, all whose
- * src resolve only to a local installation of the replacement font.
- * Font-family declarations are never rewritten, so icon fonts and site
- * fallback chains stay intact, and the replacement reaches shadow DOM
- * automatically because font faces are matched at the document level.
+ * The lists below decide which chain a stack resolves to. For every element
+ * whose computed stack names one of those families, the stack is rewritten in
+ * place: target families and generic keywords are dropped, families matching
+ * no list (icon fonts, site-specific fallbacks) keep their position, and the
+ * chain for the detected kind is appended.
  *
- * For overlapping unicode ranges the last defined @font-face rule is checked
- * first (CSS Fonts 4), so the style element is kept as the last child of
- * head: webfont faces the site registers later in the document would
- * otherwise win the tie and leak through on the characters their subsets
- * cover.
+ * The rewrite is an inline `font-family` declaration marked `!important`, which
+ * is why it wins over author stylesheets even when their rules cannot be read
+ * (cross-origin sheets) and over inline styles the site sets later. A
+ * MutationObserver re-applies it to content added after the initial scan, and
+ * open shadow roots are walked explicitly because document queries do not
+ * reach into them.
  */
 
-const STYLE_ELEMENT_ID = "font-remap";
+const SYSTEM_CHAIN = "system-ui, ui-sans-serif, sans-serif";
+const SANS_CHAIN = "ui-sans-serif, sans-serif";
+const SERIF_CHAIN = "ui-serif, serif";
+const MONO_CHAIN = "ui-monospace, monospace";
 
-// Font family name matching ignores ASCII case, so entries must be genuinely
+// Families that resolve through the user's font settings rather than through a
+// name the site picked; they are dropped when the chain is rebuilt.
+const GENERIC_FAMILIES = new Set([
+  "-apple-system",
+  "blinkmacsystemfont",
+  "cursive",
+  "fantasy",
+  "fangsong",
+  "math",
+  "monospace",
+  "sans-serif",
+  "serif",
+  "system-ui",
+  "ui-monospace",
+  "ui-rounded",
+  "ui-sans-serif",
+  "ui-serif",
+]);
+
+// Family name matching ignores ASCII case, so entries must be genuinely
 // distinct names rather than case variants.
-const TARGET_SANS_FAMILIES = [
+const SYSTEM_FAMILIES = [
   // Korean.
   "Noto Sans KR",
   "NotoSansKR",
@@ -41,34 +65,56 @@ const TARGET_SANS_FAMILIES = [
   "Malgun Gothic",
   "MalgunGothic",
   "맑은 고딕",
-  "Dotum",
-  "돋움",
   // Latin and system UI.
   "Noto Sans",
-  "Inter",
-  "GitLab Sans",
   "San Francisco",
   "SF Pro",
   "SF Pro Text",
   "SF Pro Display",
-  "Helvetica",
-  "Helvetica Neue",
-  "Arial",
   "Segoe UI",
   "Segoe UI Variable",
   "Segoe UI Adjusted",
   "Roboto",
+] as const;
+
+// Old and generic sans faces that should land on the system's sans default
+// rather than on its UI font.
+const SANS_FAMILIES = [
+  "Arial",
+  "Dotum",
+  "돋움",
+  "Inter",
   "Liberation Sans",
 ] as const;
 
-const TARGET_MONO_FAMILIES = [
-  // Editor and web fonts.
-  "GitLab Mono",
-  "Fira Code",
-  "Fira Mono",
-  "JetBrains Mono",
-  "Cascadia Mono",
-  "Monospace Neon",
+// Serif faces: the default serif of each platform, plus the legacy families
+// sites still name explicitly.
+const SERIF_FAMILIES = [
+  // Korean.
+  "Batang",
+  "바탕",
+  "BatangChe",
+  "AppleMyungjo",
+  "애플명조",
+  "Nanum Myeongjo",
+  "NanumMyeongjo",
+  "나눔명조",
+  "Noto Serif KR",
+  "NotoSerifKR",
+  "본명조",
+  // Latin.
+  "Times New Roman",
+  "Times",
+  "New York",
+  "Georgia",
+  "Liberation Serif",
+  "DejaVu Serif",
+  "Noto Serif",
+] as const;
+
+const MONO_FAMILIES = [
+  // Android.
+  "Roboto Mono",
   // Apple.
   "SF Mono",
   "SFMono Regular",
@@ -79,128 +125,215 @@ const TARGET_MONO_FAMILIES = [
   "Segoe UI Mono",
   "Courier New",
   // Linux.
+  "Hack",
   "DejaVu Sans Mono",
   "Ubuntu Mono",
   "Liberation Mono",
   "Noto Mono",
-  // Korean and CJK coding fonts.
-  "D2Coding",
-  "NanumGothicCoding",
   "Noto Sans Mono",
-  "Noto Sans Mono CJK KR",
 ] as const;
 
-/**
- * One @font-face rule per entry: `weight` is the CSS font-weight range the
- * face claims and `locals` are the local() full names tried in order.
- */
-interface FaceSpec {
-  readonly weight: string;
-  readonly style: "normal" | "italic";
-  readonly locals: readonly string[];
-}
+type Kind = "mono" | "sans" | "serif" | "system";
 
-// local() matches full font names, not family names, and the static edition
-// of Pretendard ships one full name per weight.
-const WEIGHT_STATIC_NAMES = [
-  [100, "Thin"],
-  [200, "ExtraLight"],
-  [300, "Light"],
-  [400, "Regular"],
-  [500, "Medium"],
-  [600, "SemiBold"],
-  [700, "Bold"],
-  [800, "ExtraBold"],
-  [900, "Black"],
-] as const;
+const normalized = (name: string) => name.trim().toLowerCase();
 
-// One face per weight gives static installs true strokes; listing the
-// Variable face first in every src lets Variable installs resolve every
-// weight from a single source.
-const PRETENDARD_FACES: FaceSpec[] = [
-  ...WEIGHT_STATIC_NAMES.map(
-    ([weight, staticName]): FaceSpec => ({
-      weight: String(weight),
-      style: "normal",
-      locals: ["Pretendard Variable", `Pretendard ${staticName}`],
-    }),
-  ),
-  // Pretendard ships no italic; this face keeps italic text in Pretendard
-  // with a synthesized slant instead of leaking the site's italic webfont.
-  {
-    weight: "100 900",
-    style: "italic",
-    locals: ["Pretendard Variable", "Pretendard Regular"],
-  },
-];
+const TARGET_KINDS = new Map<string, Kind>([
+  ...SYSTEM_FAMILIES.map((name): [string, Kind] => [
+    normalized(name),
+    "system",
+  ]),
+  ...SANS_FAMILIES.map((name): [string, Kind] => [normalized(name), "sans"]),
+  ...SERIF_FAMILIES.map((name): [string, Kind] => [normalized(name), "serif"]),
+  ...MONO_FAMILIES.map((name): [string, Kind] => [normalized(name), "mono"]),
+]);
 
-// Sarasa Mono K ships no variable edition, so each face resolves to the
-// static full name of a weight it publishes; weights it does not publish
-// fall to the nearest declared face. Italics exist and get their own faces.
-const SARASA_MONO_K_FACES: FaceSpec[] = [
-  { weight: "200", style: "normal", locals: ["Sarasa Mono K XLight"] },
-  { weight: "300", style: "normal", locals: ["Sarasa Mono K Light"] },
-  { weight: "400", style: "normal", locals: ["Sarasa Mono K"] },
-  { weight: "600", style: "normal", locals: ["Sarasa Mono K SemiBold"] },
-  { weight: "700", style: "normal", locals: ["Sarasa Mono K Bold"] },
-  { weight: "100 500", style: "italic", locals: ["Sarasa Mono K Italic"] },
-  { weight: "600 900", style: "italic", locals: ["Sarasa Mono K Bold Italic"] },
-];
+/** Split a computed `font-family` value into family names. */
+function splitStack(value: string): string[] {
+  const families: string[] = [];
+  let current = "";
+  let quote: string | null = null;
 
-// Sarasa Mono K's glyphs run small next to the monospace fonts it replaces,
-// so its faces scale the em size up through the size-adjust descriptor.
-const MONO_SIZE_ADJUST = "110%";
-
-function replacementCss(
-  family: string,
-  faces: readonly FaceSpec[],
-  sizeAdjust?: string,
-): string {
-  return faces
-    .map(
-      (face) => `@font-face {
-	font-family: "${family}";
-	src: ${face.locals.map((name) => `local("${name}")`).join(", ")};
-	font-weight: ${face.weight};
-	font-style: ${face.style};${
-    sizeAdjust ? `\n\tsize-adjust: ${sizeAdjust};` : ""
-  }
-}`,
-    )
-    .join("\n");
-}
-
-/**
- * Keep `style` as the last child of head. Re-inserting the element makes the
- * browser re-resolve its rules as the newest definitions, so webfonts the
- * site registers later lose the unicode-range tie again.
- */
-function keepLast(style: HTMLStyleElement): void {
-  const moveToEnd = () => {
-    const head = document.head;
-    if (
-      head &&
-      (style.parentNode !== head || head.lastElementChild !== style)
-    ) {
-      head.append(style);
+  for (const character of value) {
+    if (quote !== null) {
+      current += character;
+      if (character === quote) quote = null;
+    } else if (character === '"' || character === "'") {
+      quote = character;
+      current += character;
+    } else if (character === ",") {
+      families.push(current);
+      current = "";
+    } else {
+      current += character;
     }
-  };
+  }
+  families.push(current);
 
-  new MutationObserver(moveToEnd).observe(document.documentElement, {
-    childList: true,
-    subtree: true,
-  });
-  moveToEnd();
+  return families.map((family) => family.trim()).filter((family) => family);
 }
 
-const style = document.createElement("style");
-style.id = STYLE_ELEMENT_ID;
-style.textContent = [
-  ...TARGET_SANS_FAMILIES.map((family) =>
-    replacementCss(family, PRETENDARD_FACES),
-  ),
-  ...TARGET_MONO_FAMILIES.map((family) =>
-    replacementCss(family, SARASA_MONO_K_FACES, MONO_SIZE_ADJUST),
-  ),
-].join("\n");
-keepLast(style);
+const unquoted = (family: string) => family.replace(/^["']|["']$/g, "");
+
+/**
+ * Rewrite one computed stack, or return null when it names no target family.
+ */
+function replacementFor(stack: string): string | null {
+  let kind: Kind | null = null;
+  const kept: string[] = [];
+
+  for (const family of splitStack(stack)) {
+    const name = normalized(unquoted(family));
+    const target = TARGET_KINDS.get(name);
+    if (target !== undefined) {
+      kind ??= target;
+    } else if (!GENERIC_FAMILIES.has(name)) {
+      kept.push(family);
+    }
+  }
+
+  if (kind === null) return null;
+
+  const chain =
+    kind === "mono"
+      ? MONO_CHAIN
+      : kind === "sans"
+        ? SANS_CHAIN
+        : kind === "serif"
+          ? SERIF_CHAIN
+          : SYSTEM_CHAIN;
+  return kept.length === 0 ? chain : `${kept.join(", ")}, ${chain}`;
+}
+
+/**
+ * What this script last wrote to an element: the chain it applied, the site's
+ * own inline declaration that the chain replaced, and the whole `style`
+ * attribute produced. The attribute tells our own write apart from the site's
+ * so an observed mutation cannot re-enter; the site's declaration is restored
+ * before every re-read so a later class or inline change is seen.
+ */
+interface Applied {
+  readonly attribute: string;
+  readonly chain: string;
+  readonly sitePriority: string;
+  readonly siteValue: string;
+}
+
+const applied = new WeakMap<Element, Applied>();
+
+function setFamily(
+  style: CSSStyleDeclaration,
+  value: string,
+  priority: string,
+): void {
+  if (value === "") {
+    style.removeProperty("font-family");
+    return;
+  }
+  style.setProperty("font-family", value, priority);
+}
+
+function applyTo(element: Element): void {
+  const style = (element as HTMLElement | SVGElement).style;
+  if (!style) return;
+
+  const previous = applied.get(element);
+  const currentValue = style.getPropertyValue("font-family");
+  const currentPriority = style.getPropertyPriority("font-family");
+
+  // Our declaration hides the value the site now wants, so undo it before
+  // reading. Without this, a site that reclassifies an element, say to a
+  // monospace face, would keep rendering the chain resolved earlier.
+  const siteValue =
+    previous && currentValue === previous.chain
+      ? previous.siteValue
+      : currentValue;
+  const sitePriority =
+    previous && currentValue === previous.chain
+      ? previous.sitePriority
+      : currentPriority;
+  setFamily(style, siteValue, sitePriority);
+
+  const replacement = replacementFor(getComputedStyle(element).fontFamily);
+  if (replacement === null) {
+    applied.delete(element);
+    return;
+  }
+
+  setFamily(style, replacement, "important");
+  applied.set(element, {
+    attribute: element.getAttribute("style") ?? "",
+    chain: replacement,
+    sitePriority,
+    siteValue,
+  });
+}
+
+const OBSERVE_OPTIONS: MutationObserverInit = {
+  childList: true,
+  subtree: true,
+  attributes: true,
+  // Fonts change through the style attribute, or through a class the site
+  // toggles; other attributes cannot affect them.
+  attributeFilter: ["class", "style"],
+};
+
+const observer = new MutationObserver((records) => {
+  for (const record of records) {
+    if (record.type === "attributes") {
+      const target = record.target;
+      if (!(target instanceof Element)) continue;
+      // Writing our own declaration queues a style record; ignore it. Class
+      // changes always come from the site, even while our declaration stands.
+      if (
+        record.attributeName === "style" &&
+        applied.get(target)?.attribute === target.getAttribute("style")
+      ) {
+        continue;
+      }
+      applyTo(target);
+      continue;
+    }
+    for (const node of record.addedNodes) {
+      if (node instanceof Element) scanTree(node);
+    }
+  }
+});
+
+const observed = new WeakSet<Node>();
+
+function observe(root: Node): void {
+  if (observed.has(root)) return;
+  observed.add(root);
+  observer.observe(root, OBSERVE_OPTIONS);
+}
+
+function scanTree(root: ParentNode): void {
+  if (root instanceof Element) applyTo(root);
+
+  for (const element of root.querySelectorAll("*")) {
+    applyTo(element);
+    const shadow = element.shadowRoot;
+    if (shadow) {
+      observe(shadow);
+      scanTree(shadow);
+    }
+  }
+}
+
+// Document queries and the document observer stop at shadow boundaries, so
+// roots created after load need their own observer.
+const nativeAttachShadow = Element.prototype.attachShadow;
+Element.prototype.attachShadow = function attachShadow(
+  this: Element,
+  init: ShadowRootInit,
+): ShadowRoot {
+  const root = nativeAttachShadow.call(this, init);
+  if (init.mode === "open") {
+    observe(root);
+    scanTree(root);
+  }
+  return root;
+};
+
+observe(document);
+scanTree(document);

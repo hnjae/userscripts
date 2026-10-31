@@ -6,7 +6,6 @@
 
 excludes = [
   "*.lock",
-  "pnpm-lock.yaml",
 ]
 
 [formatter.biome]

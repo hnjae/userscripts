@@ -3,50 +3,60 @@
 
 # font-remap
 
-Replace a fixed set of sans font families — Korean, Latin, and system UI — with Pretendard, and a fixed set of monospace families with Sarasa Mono K, on every website.
+Ignore the font families a site specifies and render text in the operating system's default fonts: the system UI font or the system sans font for sans text, the system serif font for serif text, and the system monospace font for monospace text. Two readers on different systems see different fonts, because rendering follows each system's own font preferences.
 
-Neither replacement font is distributed with the script. Both must be installed on the machine running the browser; with the Pretendard Variable edition installed every sans weight renders with true strokes, otherwise the browser synthesizes them from the installed static cut.
+Nothing is bundled with the script and no font needs to be installed.
 
 ## Replaced sans family names
 
-Text whose font stack names any of these families renders in Pretendard:
+Any element whose font stack names one of these families renders in the system UI font, `system-ui, ui-sans-serif, sans-serif`:
 
 - Noto Sans KR: `Noto Sans KR`, `NotoSansKR`, `Noto Sans Korean`, `본고딕`
 - Nanum Gothic: `Nanum Gothic`, `NanumGothic`, `나눔고딕`, `NanumGothicWebFont`
+- Nanum Barun Gothic: `NanumBarunGothic`
 - Apple SD Gothic Neo: `Apple SD Gothic Neo`, `AppleSDGothicNeo`, `애플 SD 산돌고딕 Neo`, `애플 SD 산돌고딕 네오`
 - 맑은 고딕: `Malgun Gothic`, `MalgunGothic`, `맑은 고딕`
-- 돋움: `Dotum`, `돋움`
 - Noto Sans: `Noto Sans`
-- Inter: `Inter`
 - San Francisco: `San Francisco`, `SF Pro`, `SF Pro Text`, `SF Pro Display`
-- Helvetica: `Helvetica`, `Helvetica Neue`
-- Arial: `Arial`
-- Segoe UI: `Segoe UI`, `Segoe UI Variable`
+- Segoe UI: `Segoe UI`, `Segoe UI Variable`, `Segoe UI Adjusted`
 - Roboto: `Roboto`
+
+Any element whose font stack names one of these instead renders in the system sans font, `ui-sans-serif, sans-serif`:
+
+- Inter: `Inter`
+- Arial: `Arial`
+- 돋움: `Dotum`, `돋움`
 - Liberation Sans: `Liberation Sans`
+
+## Replaced serif family names
+
+Text whose font stack names any of these families renders in the system serif font, `ui-serif, serif`:
+
+- Korean: `Batang`, `바탕`, `BatangChe`, `AppleMyungjo`, `애플명조`, `Nanum Myeongjo`, `NanumMyeongjo`, `나눔명조`, `Noto Serif KR`, `NotoSerifKR`, `본명조`
+- Latin: `Times New Roman`, `Times`, `New York`, `Georgia`, `Liberation Serif`, `DejaVu Serif`, `Noto Serif`
 
 ## Replaced monospace family names
 
-Text whose font stack names any of these families renders in Sarasa Mono K:
+Text whose font stack names any of these families renders in the system monospace font, `ui-monospace, monospace`:
 
-- Editor and web fonts: `GitLab Mono`, `Fira Code`, `Fira Mono`, `JetBrains Mono`, `Cascadia Mono`, `Monospace Neon`
+- Named code faces: `Hack`, `Roboto Mono`
 - Apple: `SF Mono`, `SFMono Regular`, `Menlo`, `Monaco`
 - Windows: `Consolas`, `Segoe UI Mono`, `Courier New`
 - Linux: `DejaVu Sans Mono`, `Ubuntu Mono`, `Liberation Mono`, `Noto Mono`
-- Korean and CJK coding fonts: `D2Coding`, `NanumGothicCoding`, `Noto Sans Mono`, `Noto Sans Mono CJK KR`
+- Korean and CJK coding fonts: `Noto Sans Mono`
 
-Family name matching follows CSS semantics: names match exactly and ASCII case-insensitively, so derived names such as `Arial Narrow` or `Roboto Mono` are untouched.
+## Stack rewriting
 
-`-apple-system`, `system-ui`, and the `monospace` generic keyword are CSS keywords rather than family names; the fonts they resolve to are not replaced.
+- A stack resolves by the first replaced family it names. That family's list picks the chain: `system-ui, ui-sans-serif, sans-serif` for the system UI list, `ui-sans-serif, sans-serif` for the system sans list, `ui-serif, serif` for the serif list, and `ui-monospace, monospace` for the monospace list.
+- Replaced family names and generic keywords are dropped from the stack. Families matching no list keep their order, so icon fonts and site-specific fallbacks still resolve.
+- Stacks that name no replaced family — cursive, icon-font-only — are left alone. So are family names derived from a target, such as `Arial Narrow` or `Roboto Slab`, because names match exactly and ASCII case-insensitively.
 
 ## Behavior
 
 - Replacement applies to every website, in the top document and in iframes.
-- A target family is replaced whether the site uses it as a locally installed font or declares it as a webfont. All of its weights render in the replacement font; sans italics render with Pretendard glyphs and a synthesized slant, and monospace italics use the italic styles Sarasa Mono K publishes.
-- Replacement is in effect before the page renders text, including when the site registers its webfonts after the document has started loading.
-- Text inside shadow DOM is replaced as well.
-- Font stacks that name none of the replaced families are untouched; icon fonts and other site typography are unaffected.
-- Monospace replacement changes character advance widths, so page content laid out against the replaced fonts' metrics, such as ASCII diagrams or web terminals, may reflow.
-- Sarasa Mono K renders scaled up through the CSS `size-adjust` descriptor so its glyphs match the apparent size of the monospace fonts it replaces; page-declared font sizes are untouched.
-- Characters Pretendard does not cover, such as CJK ideographs, Cyrillic, or Greek, fall through the site's remaining font stack.
-- Without a replacement font installed, its affected sites render exactly as they would without the script.
+- It is in effect before the page renders text, and is re-applied when the site adds content, changes class names, or writes inline styles.
+- It wins over author stylesheets, including cross-origin ones whose rules a script cannot read, and over inline styles the site sets later.
+- Text inside open shadow roots is replaced; closed shadow roots are out of reach.
+- Font stacks that name none of the replaced families are untouched, so icon fonts, cursive text, and other site typography render as the site intends.
+- Monospace replacement changes character advance widths, so metric-sensitive content, such as ASCII diagrams or web terminals, may reflow.
+- Characters the system font does not cover fall through to the rest of the rewritten stack.
