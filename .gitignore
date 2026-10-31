@@ -7,7 +7,7 @@ result
 # direnv
 .direnv/
 
-# pnpm
+# dependencies
 node_modules/
 
 # build outputs

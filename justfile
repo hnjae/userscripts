@@ -5,13 +5,13 @@
 ci: typecheck lint build hooks
 
 typecheck:
-    pnpm -r typecheck
+    bun run --filter '*' typecheck
 
 lint:
     biome check .
 
 build:
-    pnpm -r build
+    bun run --filter '*' build
 
 hooks:
     prek run --all-files

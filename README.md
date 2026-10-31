@@ -11,7 +11,7 @@
 
 </div>
 
-A personal monorepo of browser userscripts written for [Violentmonkey](https://violentmonkey.github.io/). Each script lives in its own pnpm workspace package, is built with [vite-plugin-monkey](https://github.com/vite-plugin/vite-plugin-monkey), and is published automatically as a GitHub release — installs and updates always resolve to the same stable URL.
+A personal monorepo of browser userscripts written for [Violentmonkey](https://violentmonkey.github.io/). Each script lives in its own bun workspace package, is built with [vite-plugin-monkey](https://github.com/vite-plugin/vite-plugin-monkey), and is published automatically as a GitHub release — installs and updates always resolve to the same stable URL.
 
 ## Scripts
 
@@ -44,7 +44,7 @@ Every script points its `@updateURL` and `@downloadURL` at `releases/latest/down
 
 ## Development
 
-The toolchain (Node, pnpm, Biome, treefmt, prek, reuse) is declared in `shell.nix` and provided by `nix-shell`:
+The toolchain (Bun, Node, Biome, treefmt, prek, reuse) is declared in `shell.nix` and provided by `nix-shell`:
 
 ```sh
 git clone https://github.com/hnjae/userscripts.git
@@ -57,8 +57,8 @@ Common commands (run them inside the shell, or prefix them with `nix-shell --run
 | Command | What it does |
 | --------------------------------------------- | ----------------------------------------------- |
 | `just ci` | Full CI chain: typecheck → lint → build → hooks |
-| `pnpm build` | Build all userscripts |
-| `pnpm --filter @userscripts/font-remap build` | Build a single userscript |
+| `bun run --filter '*' build` | Build all userscripts |
+| `bun run --filter @userscripts/font-remap build` | Build a single userscript |
 | `just format` | Format everything |
 
 Build output lands in `scripts/<name>/dist/<name>.user.js`.

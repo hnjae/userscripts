@@ -10,9 +10,10 @@ let
 in
 pkgs.mkShell {
   packages = with pkgs; [
-    # JavaScript toolchain
+    # JavaScript toolchain. Bun installs dependencies and runs workspace
+    # scripts; Node stays for Vite, which only supports the Node runtime.
+    bun
     nodejs
-    pnpm
 
     # Task runner and git hook manager
     just
@@ -38,7 +39,7 @@ pkgs.mkShell {
   ];
 
   shellHook = ''
-    pnpm install
+    bun install
     # --force replaces hook shims left behind by other managers (for example
     # the pre-commit shims devenv installed before this repo moved to prek).
     prek install --force

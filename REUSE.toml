@@ -12,7 +12,7 @@ path = [
   "README.md",
   "biome.json",
   "package.json",
-  "pnpm-lock.yaml",
+  "bun.lock",
   "scripts/*/package.json",
   "scripts/*/tsconfig.json",
   "tsconfig.base.json",

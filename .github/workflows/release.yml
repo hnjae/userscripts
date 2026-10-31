@@ -26,16 +26,11 @@ jobs:
           # Full history and tags for version-tag comparisons and release notes.
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
-          node-version: 24
-          # setup-node v5 caches the package manager by default and would look
-          # for pnpm here; pnpm is installed globally in the next step instead.
-          package-manager-cache: false
-      - name: Install pnpm
-        run: |
-          version="$(node -p "require('./package.json').packageManager.split('@')[1]")"
-          npm install -g "pnpm@${version}"
+          # Tracks the 1.4.x line that nixpkgs ships in shell.nix. Newer Bun
+          # reads this lockfile fine; only a lockfile format bump would break it.
+          bun-version: 1.4.x
       - name: Compute release plan
         id: plan
         run: |
@@ -122,13 +117,13 @@ jobs:
             appendFileSync(process.env.GITHUB_OUTPUT, `has_releasable=${result.hasReleasable}\n`);
           }
           EOF
-          node "$RUNNER_TEMP/plan.mjs"
+          bun "$RUNNER_TEMP/plan.mjs"
       - name: Install dependencies
         if: steps.plan.outputs.has_releasable == 'true'
-        run: pnpm install --frozen-lockfile
+        run: bun install --frozen-lockfile
       - name: Build userscripts
         if: steps.plan.outputs.has_releasable == 'true'
-        run: pnpm -r build
+        run: bun run --filter '*' build
       - name: Verify build outputs
         if: steps.plan.outputs.has_releasable == 'true'
         env:
