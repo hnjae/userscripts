@@ -25,6 +25,7 @@ Any element whose font stack names one of these instead renders in the system sa
 
 - Inter: `Inter`
 - Arial: `Arial`
+- Helvetica: `Helvetica`, `Helvetica Neue`
 - 돋움: `Dotum`, `돋움`
 - Liberation Sans: `Liberation Sans`
 

@@ -83,6 +83,8 @@ const SANS_FAMILIES = [
   "Arial",
   "Dotum",
   "돋움",
+  "Helvetica",
+  "Helvetica Neue",
   "Inter",
   "Liberation Sans",
 ] as const;

@@ -21,7 +21,7 @@ A personal monorepo of browser userscripts written for [Violentmonkey](https://v
 
 ### font-remap
 
-Ignores the sans, serif, and monospace families a site asks for — Noto Sans KR, Nanum Gothic, Malgun Gothic, Roboto, Segoe UI, Inter, Arial, Dotum, Times New Roman, Georgia, Batang, Nanum Myeongjo, Hack, Roboto Mono, Consolas, SF Mono, Menlo, and more — and renders that text in the operating system's default fonts: `system-ui, ui-sans-serif, sans-serif` for system UI families, `ui-sans-serif, sans-serif` for older sans faces such as Arial and Dotum, `ui-serif, serif` for serif faces, and `ui-monospace, monospace` for monospace text.
+Ignores the sans, serif, and monospace families a site asks for — Noto Sans KR, Nanum Gothic, Malgun Gothic, Roboto, Segoe UI, Inter, Arial, Helvetica, Dotum, Times New Roman, Georgia, Batang, Nanum Myeongjo, Hack, Roboto Mono, Consolas, SF Mono, Menlo, and more — and renders that text in the operating system's default fonts: `system-ui, ui-sans-serif, sans-serif` for system UI families, `ui-sans-serif, sans-serif` for older sans faces such as Arial, Helvetica, and Dotum, `ui-serif, serif` for serif faces, and `ui-monospace, monospace` for monospace text.
 
 - Each reader sees their own system fonts; the script ships no font data and needs nothing installed.
 - Rewriting wins over the site's stylesheets, including cross-origin ones, and over inline styles it sets later.
