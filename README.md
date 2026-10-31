@@ -15,7 +15,7 @@ A personal monorepo of browser userscripts written for [Violentmonkey](https://v
 
 ## Scripts
 
-| Script                            | Description                                                                                 |                                                                                                Install |
+| Script | Description | Install |
 | --------------------------------- | ------------------------------------------------------------------------------------------- | -----------------------------------------------------------------------------------------------------: |
 | [font-remap](scripts/font-remap/) | Replace sans fonts with locally installed Pretendard and monospace fonts with Sarasa Mono K | [font-remap.user.js](https://github.com/hnjae/userscripts/releases/latest/download/font-remap.user.js) |
 
@@ -44,22 +44,22 @@ Every script points its `@updateURL` and `@downloadURL` at `releases/latest/down
 
 ## Development
 
-The toolchain (Node, pnpm, Biome, treefmt, prek, reuse) runs inside [devenv](https://devenv.sh):
+The toolchain (Node, pnpm, Biome, treefmt, prek, reuse) is declared in `shell.nix` and provided by `nix-shell`:
 
 ```sh
 git clone https://github.com/hnjae/userscripts.git
 cd userscripts
-devenv shell # installs dependencies and git hooks
+nix-shell # installs dependencies and git hooks
 ```
 
-Common commands:
+Common commands (run them inside the shell, or prefix them with `nix-shell --run`):
 
-| Command                                       | What it does                                    |
+| Command | What it does |
 | --------------------------------------------- | ----------------------------------------------- |
-| `devenv tasks run ci`                         | Full CI chain: typecheck → lint → build → hooks |
-| `pnpm build`                                  | Build all userscripts                           |
-| `pnpm --filter @userscripts/font-remap build` | Build a single userscript                       |
-| `devenv shell -- treefmt`                     | Format everything                               |
+| `just ci` | Full CI chain: typecheck → lint → build → hooks |
+| `pnpm build` | Build all userscripts |
+| `pnpm --filter @userscripts/font-remap build` | Build a single userscript |
+| `just format` | Format everything |
 
 Build output lands in `scripts/<name>/dist/<name>.user.js`.
 

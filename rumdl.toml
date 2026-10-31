@@ -12,12 +12,12 @@ disable = [
   "single-title",
 ]
 
-[MD007] # ul-indent
+["ul-indent"]
 indent = 4
 
-[MD033] # inline HTML, centered header in README
+["no-inline-html"]
 allowed-elements = ["div"]
 
-[MD060]
-enabled = true    # table-format
-style = "aligned"
+["table-format"]
+enabled = true
+style = "compact"

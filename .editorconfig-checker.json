@@ -1,0 +1,6 @@
+{
+  "Disable": {
+    "MaxLineLength": false
+  },
+  "Exclude": ["scripts/font-remap/src/main.ts"]
+}

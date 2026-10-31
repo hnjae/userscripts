@@ -1,16 +1,11 @@
 # SPDX-FileCopyrightText: 2026 KIM Hyunjae
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-# devenv state
-.devenv/
-.devenv.flake.nix
-devenv.local.nix
-
-# nix build outputs
+# nix shell outputs
 result
 
-# Managed by devenv:
-.pre-commit-config.yaml
+# direnv
+.direnv/
 
 # pnpm
 node_modules/

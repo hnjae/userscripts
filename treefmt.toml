@@ -1,0 +1,55 @@
+# SPDX-FileCopyrightText: 2026 KIM Hyunjae
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Run `treefmt` to format the whole tree or `treefmt --fail-on-change --no-cache`
+# to check it, as the prek hook does.
+
+excludes = [
+  "*.lock",
+  "pnpm-lock.yaml",
+]
+
+[formatter.biome]
+command = "biome"
+options = [
+  "format",
+  "--write",
+  "--no-errors-on-unmatched",
+]
+includes = [
+  "*.js",
+  "*.ts",
+  "*.mjs",
+  "*.mts",
+  "*.cjs",
+  "*.cts",
+  "*.jsx",
+  "*.tsx",
+  "*.d.ts",
+  "*.d.cts",
+  "*.d.mts",
+  "*.json",
+  "*.jsonc",
+  "*.css",
+]
+
+[formatter.nixfmt]
+command = "nixfmt"
+includes = ["*.nix"]
+
+[formatter.rumdl]
+command = "rumdl"
+options = ["fmt"]
+includes = ["*.md"]
+
+[formatter.taplo]
+command = "taplo"
+options = ["format"]
+includes = ["*.toml"]
+
+[formatter.yamlfmt]
+command = "yamlfmt"
+includes = [
+  "*.yaml",
+  "*.yml",
+]

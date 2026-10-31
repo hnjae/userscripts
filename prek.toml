@@ -1,0 +1,87 @@
+# SPDX-FileCopyrightText: 2026 KIM Hyunjae
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Git hooks are installed by `prek install --force`, which `shell.nix` runs on
+# entry. The hook commands resolve tools from the shell's PATH, so commit from
+# inside `nix-shell` (or make the same tools available another way).
+
+# Lock files change on every dependency update and carry no reviewable content.
+exclude = ".*\\.lock$"
+
+# Hooks run at the pre-commit stage unless they name another stage.
+default_stages = ["pre-commit"]
+
+# `prek install` installs a shim for every stage listed here.
+default_install_hook_types = ["pre-commit", "commit-msg"]
+
+[[repos]]
+repo = "builtin"
+hooks = [
+  { id = "detect-private-key" },
+  { id = "check-added-large-files" },
+  { id = "trailing-whitespace" },
+]
+
+[[repos]]
+repo = "local"
+
+# Commit messages must satisfy Conventional Commits.
+[[repos.hooks]]
+id = "cocogitto"
+name = "cog verify"
+entry = "cog verify --file"
+language = "system"
+stages = ["commit-msg"]
+
+# Static checks
+[[repos.hooks]]
+id = "deadnix"
+name = "deadnix"
+entry = "deadnix --fail"
+language = "system"
+files = "\\.nix$"
+
+[[repos.hooks]]
+id = "statix"
+name = "statix"
+entry = "statix check --format errfmt"
+language = "system"
+files = "\\.nix$"
+pass_filenames = false
+
+[[repos.hooks]]
+id = "typos"
+name = "typos"
+entry = "typos --force-exclude"
+language = "system"
+types = ["text"]
+
+[[repos.hooks]]
+id = "editorconfig-checker"
+name = "editorconfig-checker"
+entry = "editorconfig-checker"
+language = "system"
+types = ["text"]
+
+# Formatter check
+[[repos.hooks]]
+id = "treefmt"
+name = "treefmt"
+entry = "treefmt --fail-on-change --no-cache"
+language = "system"
+
+# Miscellaneous
+[[repos.hooks]]
+id = "rumdl"
+name = "rumdl"
+entry = "rumdl check"
+language = "system"
+files = "\\.md$"
+
+[[repos.hooks]]
+id = "reuse"
+name = "reuse lint"
+entry = "reuse lint"
+language = "system"
+always_run = true
+pass_filenames = false

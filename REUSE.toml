@@ -6,11 +6,11 @@ version = 1
 # Tool configuration and metadata files without SPDX-capable comments.
 [[annotations]]
 path = [
+  ".editorconfig-checker.json",
   ".gitignore",
   "AGENTS.md",
   "README.md",
   "biome.json",
-  "devenv.lock",
   "package.json",
   "pnpm-lock.yaml",
   "scripts/*/package.json",
